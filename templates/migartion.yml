@@ -1,0 +1,41 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: lowry-migration
+  namespace: lowry
+spec:
+  template:
+    spec:
+      containers:
+      - name: lowry-migration
+        image: giorgi023/lowry-backend:latest
+        command: ["alembic",  "upgrade", "head"]
+        env:
+        - name: POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              name: database-cluster-app
+              key: username
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: database-cluster-app
+              key: password
+        - name: POSTGRES_DB
+          valueFrom:
+            secretKeyRef:
+              name: database-cluster-app
+              key: dbname
+        - name: POSTGRES_HOST
+          valueFrom:
+            secretKeyRef:
+              name: database-cluster-app
+              key: host
+        - name: POSTGRES_PORT
+          valueFrom:
+            secretKeyRef:
+              name: database-cluster-app
+              key: port
+
+      restartPolicy: Never
+  backoffLimit: 10

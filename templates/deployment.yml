@@ -1,0 +1,119 @@
+{{- range .Values.deployments }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $.Values.name }}-{{ .name }}
+  namespace: {{ $.Values.name }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ $.Values.name }}-{{ .name }}
+  template:
+    metadata:
+      labels:
+        app: {{ $.Values.name }}-{{ .name }}
+    spec:
+      containers:
+      - name: {{ $.Values.name }}-{{ .name }}-container
+        image: {{ .image }}
+        imagePullPolicy: "Always"
+        ports:
+          - containerPort: {{ .port }}
+        command: {{ toYaml .command | nindent 9 }}
+        args: {{ toYaml .args | nindent 9 }}
+        resources:
+          requests:
+            cpu: "250m"
+            memory: "512Mi"
+          limits:
+            cpu: "1"
+            memory: "512Mi"
+        env:
+        - name: POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              name: database-cluster-app
+              key: username
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: database-cluster-app
+              key: password
+        - name: POSTGRES_DB
+          valueFrom:
+            secretKeyRef:
+              name: database-cluster-app
+              key: dbname
+        - name: POSTGRES_HOST
+          valueFrom:
+            secretKeyRef:
+              name: database-cluster-app
+              key: host
+        - name: POSTGRES_PORT
+          valueFrom:
+            secretKeyRef:
+              name: database-cluster-app
+              key: port
+
+        - name: ACCESS_TOKEN_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: lowry-secrets
+              key: access_token_secret_key
+
+        - name: REFRESH_TOKEN_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: lowry-secrets
+              key: refresh_token_secret_key
+              
+        - name: ALGORITHM
+          valueFrom:
+            secretKeyRef:
+              name: lowry-secrets
+              key: algorithm
+
+        - name: MINIO_ROOT_USER
+          valueFrom:
+            secretKeyRef:
+              name: lowry-secrets
+              key: user
+
+        - name: MINIO_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: lowry-secrets
+              key: password
+
+        - name: MINIO_BUCKET
+          valueFrom:
+            secretKeyRef:
+              name: lowry-secrets
+              key: minio_bucket
+
+        - name: MINIO_ENDPOINT
+          valueFrom:
+            configMapKeyRef:
+              name: lowry-config
+              key: MINIO_ENDPOINT
+
+        - name: BASE_FRONTEND_URL
+          valueFrom:
+            configMapKeyRef:
+              name: lowry-config
+              key: BASE_FRONTEND_URL
+
+        - name: MAIL_USERNAME
+          valueFrom: 
+            secretKeyRef:
+              name: lowry-secrets
+              key: MAIL_USERNAME
+
+        - name: MAIL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: lowry-secrets
+              key: MAIL_PASSWORD
+{{- end }}

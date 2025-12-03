@@ -1,0 +1,84 @@
+name: lowry
+
+secrets:
+  data:
+    postgres_db: bG93cnk=
+    user: dXNlcg==
+    password: Z2lvcmdpNTU1NQ==
+
+    access_token_secret_key: ODBiM2U0YjViZjY0NDhlMGE0MDE2MGU3ZWNjZDFiM2E4NDdjN2EyOWIwZGY0NzI1YWJjY2ZjNDExZGY5Mzg1Mg==
+    refresh_token_secret_key: NDViZWI5NDdhZDVmNGZhYzkyMmNmZWJjNDlmNDU5M2RjMmE3NDBjN2Y2NDY0M2FmYjg3ZjViYjRmMGU0NjA4Yg==
+    algorithm: SFMyNTY=
+
+    minio_bucket: bG93cnktYnVja2V0
+
+    # These values are not valid and must be manually filled
+    MAIL_USERNAME: ZXhhbXBsZUBlbWFpbC5jb20=
+    MAIL_PASSWORD: cGFzc3dvcmQ=
+
+deployments:
+  - name: backend
+    image: giorgi023/lowry-backend:latest
+    port: 8000
+    command:
+      - uvicorn
+    args:
+      - src.main:app
+      - --host
+      - 0.0.0.0
+      - --port
+      - "8000"
+
+  - name: minio
+    image: minio/minio:RELEASE.2025-02-18T16-25-55Z
+    port: 9000
+    command:
+      - minio
+    args:
+      - server
+      - /home/shared
+      - --console-address
+      - :9001
+
+  - name: celery
+    image: giorgi023/lowry-backend:latest
+    command: [celery, -A, src.celery_worker, worker, --loglevel=info]
+    port: 3000
+
+  - name: frontend
+    image: giorgi023/lowry-frontend:latest
+    port: 80
+
+
+services:
+  - name: backend
+    port: 8000
+
+  - name: minio
+    port: 9000
+
+  - name: frontend
+    port: 80
+
+# CNPG operator values
+cloudnative-pg:
+  fullnameOverride: "lowry-cloudnative-pg"
+  operator:
+    image:
+      repository: ghcr.io/cloudnative-pg/postgresql-operator
+      tag: "v1.9.0"   # valid CNPG operator version
+    replicas: 1
+    logLevel: info
+
+# Postgres Cluster values
+postgresCluster:
+  name: lowry-db
+  instances: 1
+  imageName: ghcr.io/cloudnative-pg/postgresql:16
+  storage:
+    size: 1Gi
+  auth:
+    database: "lowry"
+    user: "user"
+    password: "giorgi5555"
+    replicationPassword: "giorgi5555"
