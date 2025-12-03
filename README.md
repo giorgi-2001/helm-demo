@@ -1,5 +1,5 @@
 # Helm Chart Demo
-This repo showcases how can we set up a helm chart.  
+This repo showcases how we can set up a helm chart.  
 This is just a demo - **NOT FULLY WORKING EXAMPLE**
 
 ### Commands to run:
@@ -27,6 +27,8 @@ https://github.com/cloudnative-pg/charts?tab=readme-ov-file
 
 ### To Cleanup:
 ```shell
+#!/bin/bash
+
 helm uninstall cnpg -n cnpg-system
 helm uninstall database -n database
 helm uninstall lowry
